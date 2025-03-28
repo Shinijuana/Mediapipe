@@ -32,12 +32,31 @@
         const canvasElement = document.getElementById('output');
         const canvasCtx = canvasElement.getContext('2d');
 
-        // 📌 Imposta la fotocamera posteriore con fallback e risoluzione inferiore per mobile
+        // 📌 Funzione per ottenere la risoluzione in base alle dimensioni dello schermo
+        function getResponsiveResolution() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const aspectRatio = 16 / 9; // Rapporto 16:9
+
+            let newWidth = width;
+            let newHeight = width / aspectRatio;
+
+            if (newHeight > height) {
+                newHeight = height;
+                newWidth = height * aspectRatio;
+            }
+
+            return { width: newWidth, height: newHeight };
+        }
+
+        // 📌 Imposta la fotocamera con risoluzione responsiva
         async function startCamera() {
+            const { width, height } = getResponsiveResolution();
+
             let constraints = {
                 video: {
-                    width: { ideal: 1280 },  // Risoluzione ridotta per migliorare la performance
-                    height: { ideal: 720 },  // Risoluzione ridotta per migliorare la performance
+                    width: { ideal: width },
+                    height: { ideal: height },
                     facingMode: { ideal: "environment" } // Preferisce la fotocamera posteriore
                 }
             };
@@ -47,7 +66,7 @@
                 videoElement.srcObject = stream;
                 videoElement.onloadedmetadata = () => {
                     videoElement.play();
-                    adjustCanvasSize();
+                    adjustCanvasSize(width, height);
                 };
             } catch (err) {
                 console.error("Errore accesso webcam:", err);
@@ -55,9 +74,9 @@
         }
 
         // 📌 Adatta il canvas alle dimensioni dello schermo
-        function adjustCanvasSize() {
-            canvasElement.width = videoElement.videoWidth || window.innerWidth;
-            canvasElement.height = videoElement.videoHeight || window.innerHeight;
+        function adjustCanvasSize(width, height) {
+            canvasElement.width = width;
+            canvasElement.height = height;
         }
 
         // 📌 Configura MediaPipe Hands
@@ -77,8 +96,8 @@
             onFrame: async () => {
                 await hands.send({ image: videoElement });
             },
-            width: 1280,  // Risoluzione ridotta per migliorare la performance
-            height: 720,  // Risoluzione ridotta per migliorare la performance
+            width: window.innerWidth,  // Si adatta alla larghezza dinamica
+            height: window.innerHeight, // Si adatta all'altezza dinamica
         });
         camera.start();
 
@@ -98,6 +117,12 @@
 
         // 📌 Avvia la fotocamera
         startCamera();
+
+        // 📌 Gestisci il ridimensionamento dello schermo in tempo reale
+        window.addEventListener('resize', () => {
+            const { width, height } = getResponsiveResolution();
+            adjustCanvasSize(width, height);
+        });
     </script>
 </body>
 </html>
