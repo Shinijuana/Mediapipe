@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
@@ -17,11 +15,10 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            object-fit: cover; /* Adatta il video a tutto schermo */
-            transform: scaleX(-1); /* Riflette il video per correggere specchiatura */
+            object-fit: cover;
         }
         canvas {
-            pointer-events: none; /* Evita interazioni con il canvas */
+            pointer-events: none;
         }
     </style>
 </head>
