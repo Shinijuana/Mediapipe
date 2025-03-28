@@ -2,13 +2,13 @@ const videoElement = document.getElementById('video');
 const canvasElement = document.getElementById('output');
 const canvasCtx = canvasElement.getContext('2d');
 
-// 📌 Imposta la fotocamera, preferibilmente posteriore, fallback alla selfie
+// 📌 Imposta la fotocamera posteriore con fallback
 async function startCamera() {
     let constraints = {
         video: {
-            width: { exact: window.innerWidth },
-            height: { exact: window.innerHeight },
-            facingMode: { exact: "environment" } // Preferisce la posteriore
+            width: { ideal: window.innerWidth },
+            height: { ideal: window.innerHeight },
+            facingMode: { ideal: "environment" } // Preferisce la fotocamera posteriore
         }
     };
 
@@ -19,43 +19,21 @@ async function startCamera() {
             videoElement.play();
             adjustCanvasSize();
         };
-        handleZoom(stream);
     } catch (err) {
-        console.error("Errore accesso webcam, uso la fotocamera frontale:", err);
-
-        // Fallback alla fotocamera frontale se quella posteriore non funziona
-        constraints.video.facingMode = "user"; // Fotocamera frontale
-        let stream = await navigator.mediaDevices.getUserMedia(constraints);
-        videoElement.srcObject = stream;
-        videoElement.onloadedmetadata = () => {
-            videoElement.play();
-            adjustCanvasSize();
-        };
-        handleZoom(stream); // Gestisce lo zoom anche con la fotocamera frontale
-    }
-}
-
-// 📌 Impedisce lo zoom automatico
-function handleZoom(stream) {
-    const track = stream.getVideoTracks()[0];
-    const capabilities = track.getCapabilities();
-
-    if (capabilities.zoom) {
-        // Forza zoom 1x per evitare ingrandimento
-        track.applyConstraints({ advanced: [{ zoom: 1.0 }] })
-            .then(() => {
-                console.log('Zoom impostato a 1x');
-            })
-            .catch(err => {
-                console.error('Impossibile impostare lo zoom:', err);
-            });
+        console.error("Errore accesso webcam:", err);
     }
 }
 
 // 📌 Adatta il canvas alle dimensioni dello schermo
 function adjustCanvasSize() {
+    // Imposta il canvas esattamente come la dimensione del video per evitare distorsioni
     canvasElement.width = videoElement.videoWidth || window.innerWidth;
     canvasElement.height = videoElement.videoHeight || window.innerHeight;
+
+    // Adatta il video allo schermo, mantenendo l'aspect ratio e senza zoom
+    videoElement.style.width = '100vw';
+    videoElement.style.height = '100vh';
+    videoElement.style.objectFit = 'contain'; // Garantisce che il video si adatti senza distorsioni
 }
 
 // 📌 Configura MediaPipe Hands
