@@ -2,7 +2,45 @@ const videoElement = document.getElementById('video');
 const canvasElement = document.getElementById('output');
 const canvasCtx = canvasElement.getContext('2d');
 
-// Configurazione della videocamera
+// 📌 Imposta la fotocamera posteriore su mobile
+const constraints = {
+    video: {
+        facingMode: "environment", // Fotocamera posteriore
+        width: { ideal: 640 },
+        height: { ideal: 480 }
+    }
+};
+
+// 📌 Attiva la videocamera
+navigator.mediaDevices.getUserMedia(constraints)
+    .then((stream) => {
+        videoElement.srcObject = stream;
+        videoElement.onloadedmetadata = () => {
+            videoElement.play();
+            adjustCanvasSize();
+        };
+    })
+    .catch((err) => console.error("Errore accesso webcam:", err));
+
+// 📌 Adatta il canvas alle dimensioni del video
+function adjustCanvasSize() {
+    canvasElement.width = videoElement.videoWidth;
+    canvasElement.height = videoElement.videoHeight;
+}
+
+// 📌 Configura MediaPipe Hands
+const hands = new Hands({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+});
+
+hands.setOptions({
+    maxNumHands: 2,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+});
+
+// 📌 Usa la webcam come input per MediaPipe
 const camera = new Camera(videoElement, {
     onFrame: async () => {
         await hands.send({ image: videoElement });
@@ -12,22 +50,10 @@ const camera = new Camera(videoElement, {
 });
 camera.start();
 
-// Configurazione di MediaPipe Hands
-const hands = new Hands({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-});
-
-hands.setOptions({
-    maxNumHands: 2,  // Numero massimo di mani da rilevare
-    modelComplexity: 1,
-    minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5
-});
-
+// 📌 Disegna le mani rilevate
 hands.onResults((results) => {
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-    
-    // Disegna le mani rilevate sulla canvas
+
     if (results.multiHandLandmarks) {
         for (const landmarks of results.multiHandLandmarks) {
             drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 2 });
