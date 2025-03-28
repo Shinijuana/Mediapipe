@@ -8,21 +8,46 @@ async function startCamera() {
         video: {
             width: { ideal: window.innerWidth },
             height: { ideal: window.innerHeight },
-            facingMode: { ideal: "environment" } // Preferisce la posteriore
+            facingMode: { exact: "environment" } // 🔹 Forza la fotocamera posteriore
         }
     };
 
     try {
         let stream = await navigator.mediaDevices.getUserMedia(constraints);
-        videoElement.srcObject = stream;
-        videoElement.onloadedmetadata = () => {
-            videoElement.play();
-            adjustCanvasSize();
-        };
+        setVideoStream(stream);
     } catch (err) {
-        console.error("Errore accesso webcam:", err);
+        console.warn("⚠️ Fotocamera posteriore non disponibile. Uso quella frontale.", err);
+
+        // 🔹 Se "exact" fallisce, prova con "ideal" (fallback alla posteriore)
+        constraints.video.facingMode = { ideal: "environment" };
+        try {
+            let stream = await navigator.mediaDevices.getUserMedia(constraints);
+            setVideoStream(stream);
+        } catch (err) {
+            console.error("❌ Errore critico, uso fotocamera frontale come ultima risorsa.", err);
+            constraints.video.facingMode = "user"; // 🔹 Fallback finale alla fotocamera frontale
+            let stream = await navigator.mediaDevices.getUserMedia(constraints);
+            setVideoStream(stream);
+        }
     }
 }
+
+// 📌 Imposta lo stream nel video e adatta il canvas
+function setVideoStream(stream) {
+    videoElement.srcObject = stream;
+    videoElement.onloadedmetadata = () => {
+        videoElement.play();
+        adjustCanvasSize();
+    };
+
+    // 🔹 Forza lo zoom a 1x per evitare problemi di ingrandimento automatico
+    const track = stream.getVideoTracks()[0];
+    const capabilities = track.getCapabilities();
+    if (capabilities.zoom) {
+        track.applyConstraints({ advanced: [{ zoom: 1.0 }] });
+    }
+}
+
 
 // 📌 Adatta il canvas alle dimensioni dello schermo
 function adjustCanvasSize() {
