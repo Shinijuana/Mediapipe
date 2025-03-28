@@ -2,13 +2,14 @@ const videoElement = document.getElementById('video');
 const canvasElement = document.getElementById('output');
 const canvasCtx = canvasElement.getContext('2d');
 
-// 📌 Imposta la fotocamera posteriore con fallback
+// 📌 Imposta la fotocamera frontale (selfie) con risoluzioni adeguate per mobile
 async function startCamera() {
     let constraints = {
         video: {
-            width: { ideal: window.innerWidth },
-            height: { ideal: window.innerHeight },
-            facingMode: { ideal: "environment" } // Preferisce la fotocamera posteriore
+            facingMode: { ideal: "user" }, // Fotocamera frontale
+            width: { ideal: window.innerWidth }, // Larghezza ideale per adattarsi
+            height: { ideal: window.innerHeight }, // Altezza ideale per adattarsi
+            frameRate: { ideal: 30 } // Frequenza di aggiornamento ottimale per mobile
         }
     };
 
@@ -24,16 +25,15 @@ async function startCamera() {
     }
 }
 
-// 📌 Adatta il canvas alle dimensioni dello schermo
+// 📌 Adatta il canvas alle dimensioni del video (senza zoom)
 function adjustCanvasSize() {
-    // Imposta il canvas esattamente come la dimensione del video per evitare distorsioni
     canvasElement.width = videoElement.videoWidth || window.innerWidth;
     canvasElement.height = videoElement.videoHeight || window.innerHeight;
 
-    // Adatta il video allo schermo, mantenendo l'aspect ratio e senza zoom
+    // Adatta il video allo schermo, mantenendo l'aspect ratio senza zoom
     videoElement.style.width = '100vw';
     videoElement.style.height = '100vh';
-    videoElement.style.objectFit = 'contain'; // Garantisce che il video si adatti senza distorsioni
+    videoElement.style.objectFit = 'cover'; // L'oggetto copre tutta la vista senza distorsione
 }
 
 // 📌 Configura MediaPipe Hands
@@ -65,7 +65,7 @@ hands.onResults((results) => {
     if (results.multiHandLandmarks) {
         for (const landmarks of results.multiHandLandmarks) {
             drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 1 });
-            drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: .5 }); // Punti più piccoli
+            drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: 2 }); // Punti più piccoli
         }
     }
 });
