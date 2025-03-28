@@ -2,14 +2,13 @@ const videoElement = document.getElementById('video');
 const canvasElement = document.getElementById('output');
 const canvasCtx = canvasElement.getContext('2d');
 
-// 📌 Imposta la fotocamera frontale (selfie) con risoluzioni adeguate per mobile
+// 📌 Imposta la fotocamera posteriore con fallback
 async function startCamera() {
     let constraints = {
         video: {
-            facingMode: { ideal: "user" }, // Fotocamera frontale
-            width: { ideal: window.innerWidth }, // Larghezza ideale per adattarsi
-            height: { ideal: window.innerHeight }, // Altezza ideale per adattarsi
-            frameRate: { ideal: 30 } // Frequenza di aggiornamento ottimale per mobile
+            width: { ideal: window.innerWidth },
+            height: { ideal: window.innerHeight },
+            facingMode: { ideal: "user" } // Preferisce la posteriore
         }
     };
 
@@ -25,15 +24,10 @@ async function startCamera() {
     }
 }
 
-// 📌 Adatta il canvas alle dimensioni del video (senza zoom)
+// 📌 Adatta il canvas alle dimensioni dello schermo
 function adjustCanvasSize() {
     canvasElement.width = videoElement.videoWidth || window.innerWidth;
     canvasElement.height = videoElement.videoHeight || window.innerHeight;
-
-    // Adatta il video allo schermo, mantenendo l'aspect ratio senza zoom
-    videoElement.style.width = '100vw';
-    videoElement.style.height = '100vh';
-    videoElement.style.objectFit = 'cover'; // L'oggetto copre tutta la vista senza distorsione
 }
 
 // 📌 Configura MediaPipe Hands
@@ -65,7 +59,7 @@ hands.onResults((results) => {
     if (results.multiHandLandmarks) {
         for (const landmarks of results.multiHandLandmarks) {
             drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 1 });
-            drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: 2 }); // Punti più piccoli
+            drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: .5 }); 
         }
     }
 });
