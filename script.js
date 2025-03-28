@@ -8,7 +8,7 @@ async function startCamera() {
         video: {
             width: { ideal: window.innerWidth },
             height: { ideal: window.innerHeight },
-            facingMode: { ideal: "user" } // Preferisce la posteriore
+            facingMode: { ideal: "environment" } // Preferisce la posteriore
         }
     };
 
