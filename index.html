@@ -8,8 +8,23 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; }
-        video, canvas { position: absolute; left: 50%; transform: translateX(-50%); top: 50px; }
+        body { text-align: center; font-family: Arial, sans-serif; background: #222; color: white; }
+        video, canvas {
+            position: absolute;
+            left: 50%;
+            top: 50px;
+            transform: translateX(-50%);
+        }
+        video {
+            display: block;
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+        }
+        canvas {
+            position: absolute;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
