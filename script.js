@@ -2,18 +2,18 @@ const videoElement = document.getElementById('video');
 const canvasElement = document.getElementById('output');
 const canvasCtx = canvasElement.getContext('2d');
 
-// 📌 Imposta la fotocamera posteriore su mobile
+// 📌 Imposta la fotocamera posteriore con fallback
 async function startCamera() {
-    const constraints = {
+    let constraints = {
         video: {
-            facingMode: "environment", // Forza la fotocamera posteriore
             width: { ideal: window.innerWidth },
-            height: { ideal: window.innerHeight }
+            height: { ideal: window.innerHeight },
+            facingMode: { ideal: "environment" } // Preferisce la posteriore
         }
     };
 
     try {
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        let stream = await navigator.mediaDevices.getUserMedia(constraints);
         videoElement.srcObject = stream;
         videoElement.onloadedmetadata = () => {
             videoElement.play();
@@ -24,10 +24,10 @@ async function startCamera() {
     }
 }
 
-// 📌 Adatta il canvas alla dimensione del video
+// 📌 Adatta il canvas alle dimensioni dello schermo
 function adjustCanvasSize() {
-    canvasElement.width = videoElement.videoWidth;
-    canvasElement.height = videoElement.videoHeight;
+    canvasElement.width = videoElement.videoWidth || window.innerWidth;
+    canvasElement.height = videoElement.videoHeight || window.innerHeight;
 }
 
 // 📌 Configura MediaPipe Hands
@@ -42,17 +42,27 @@ hands.setOptions({
     minTrackingConfidence: 0.5
 });
 
-// 📌 Analizza i frame della webcam con MediaPipe
+// 📌 Usa il video come input per MediaPipe
+const camera = new Camera(videoElement, {
+    onFrame: async () => {
+        await hands.send({ image: videoElement });
+    },
+    width: window.innerWidth,
+    height: window.innerHeight
+});
+camera.start();
+
+// 📌 Disegna le mani in modo allineato
 hands.onResults((results) => {
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     
     if (results.multiHandLandmarks) {
         for (const landmarks of results.multiHandLandmarks) {
             drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 2 });
-            drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: 2 }); // 🔹 Ridotti i punti
+            drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: 2 });
         }
     }
 });
 
-// 📌 Avvia la webcam e MediaPipe
+// 📌 Avvia la fotocamera
 startCamera();
