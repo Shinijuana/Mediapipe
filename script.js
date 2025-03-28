@@ -8,7 +8,7 @@ async function startCamera() {
         video: {
             width: { ideal: window.innerWidth },
             height: { ideal: window.innerHeight },
-            facingMode: { ideal: "environment" } // Preferisce la posteriore
+            facingMode: { ideal: "user" } // Usa la fotocamera frontale, in caso di errore imposta la posteriore
         }
     };
 
@@ -18,13 +18,23 @@ async function startCamera() {
         videoElement.onloadedmetadata = () => {
             videoElement.play();
             adjustCanvasSize();
+            handleOrientationChange(); // Gestisci l'orientamento al caricamento
         };
     } catch (err) {
         console.error("Errore accesso webcam:", err);
     }
 }
 
-// 📌 Adatta il canvas alle dimensioni dello schermo
+// 📌 Gestione della rotazione del video
+function handleOrientationChange() {
+    if (window.innerHeight > window.innerWidth) {
+        videoElement.style.transform = 'scaleX(-1)'; // Ruota in modalità verticale
+    } else {
+        videoElement.style.transform = ''; // Disabilita la rotazione in modalità orizzontale
+    }
+}
+
+// 📌 Adatta il canvas alle dimensioni del video
 function adjustCanvasSize() {
     canvasElement.width = videoElement.videoWidth || window.innerWidth;
     canvasElement.height = videoElement.videoHeight || window.innerHeight;
@@ -59,10 +69,13 @@ hands.onResults((results) => {
     if (results.multiHandLandmarks) {
         for (const landmarks of results.multiHandLandmarks) {
             drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 1 });
-            drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: .5 }); 
+            drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: 2 }); 
         }
     }
 });
 
 // 📌 Avvia la fotocamera
 startCamera();
+
+// 📌 Rileva cambiamenti di orientamento (verticale/orizzontale)
+window.addEventListener('resize', handleOrientationChange);
