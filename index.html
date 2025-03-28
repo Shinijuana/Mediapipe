@@ -16,7 +16,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            object-fit: contain;
+            object-fit: contain; /* Cambiato da 'cover' a 'contain' */
             transform: scaleX(-1); /* Inverte l'immagine per emulare una fotocamera frontale */
         }
         canvas {
@@ -32,32 +32,13 @@
         const canvasElement = document.getElementById('output');
         const canvasCtx = canvasElement.getContext('2d');
 
-        // 📌 Funzione per ottenere la risoluzione in base alle dimensioni dello schermo
-        function getResponsiveResolution() {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            const aspectRatio = 16 / 9; // Rapporto 16:9
-
-            let newWidth = width;
-            let newHeight = width / aspectRatio;
-
-            if (newHeight > height) {
-                newHeight = height;
-                newWidth = height * aspectRatio;
-            }
-
-            return { width: newWidth, height: newHeight };
-        }
-
-        // 📌 Imposta la fotocamera con risoluzione responsiva
+        // 📌 Imposta la fotocamera posteriore con fallback
         async function startCamera() {
-            const { width, height } = getResponsiveResolution();
-
             let constraints = {
                 video: {
-                    width: { ideal: width },
-                    height: { ideal: height },
-                    facingMode: { ideal: "environment" } // Preferisce la fotocamera posteriore
+                    width: { ideal: window.innerWidth },
+                    height: { ideal: window.innerHeight },
+                    facingMode: { ideal: "environment" } // Preferisce la posteriore
                 }
             };
 
@@ -66,7 +47,7 @@
                 videoElement.srcObject = stream;
                 videoElement.onloadedmetadata = () => {
                     videoElement.play();
-                    adjustCanvasSize(width, height);
+                    adjustCanvasSize();
                 };
             } catch (err) {
                 console.error("Errore accesso webcam:", err);
@@ -74,9 +55,9 @@
         }
 
         // 📌 Adatta il canvas alle dimensioni dello schermo
-        function adjustCanvasSize(width, height) {
-            canvasElement.width = width;
-            canvasElement.height = height;
+        function adjustCanvasSize() {
+            canvasElement.width = videoElement.videoWidth || window.innerWidth;
+            canvasElement.height = videoElement.videoHeight || window.innerHeight;
         }
 
         // 📌 Configura MediaPipe Hands
@@ -86,7 +67,7 @@
 
         hands.setOptions({
             maxNumHands: 2,
-            modelComplexity: 1, // Ripristinato a 1 per maggiore precisione
+            modelComplexity: 1,
             minDetectionConfidence: 0.5,
             minTrackingConfidence: 0.5
         });
@@ -96,8 +77,8 @@
             onFrame: async () => {
                 await hands.send({ image: videoElement });
             },
-            width: window.innerWidth,  // Si adatta alla larghezza dinamica
-            height: window.innerHeight, // Si adatta all'altezza dinamica
+            width: window.innerWidth,
+            height: window.innerHeight
         });
         camera.start();
 
@@ -107,22 +88,14 @@
             
             if (results.multiHandLandmarks) {
                 for (const landmarks of results.multiHandLandmarks) {
-                    // Disegna i connettori tra i punti della mano
                     drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 1 });
-                    // Disegna i punti delle mani
-                    drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: 5 });
+                    drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: .5 }); 
                 }
             }
         });
 
         // 📌 Avvia la fotocamera
         startCamera();
-
-        // 📌 Gestisci il ridimensionamento dello schermo in tempo reale
-        window.addEventListener('resize', () => {
-            const { width, height } = getResponsiveResolution();
-            adjustCanvasSize(width, height);
-        });
     </script>
 </body>
 </html>
