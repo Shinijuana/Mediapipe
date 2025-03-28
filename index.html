@@ -76,9 +76,6 @@
         const camera = new Camera(videoElement, {
             onFrame: async () => {
                 await hands.send({ image: videoElement });
-                requestAnimationFrame(() => {
-                    drawHandTracking();  // Rende il disegno più fluido
-                });
             },
             width: 1280,  // Risoluzione ridotta per migliorare la performance
             height: 720,  // Risoluzione ridotta per migliorare la performance
@@ -86,16 +83,18 @@
         camera.start();
 
         // 📌 Disegna le mani in modo allineato
-        function drawHandTracking() {
+        hands.onResults((results) => {
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             
-            if (hands.results && hands.results.multiHandLandmarks) {
-                for (const landmarks of hands.results.multiHandLandmarks) {
+            if (results.multiHandLandmarks) {
+                for (const landmarks of results.multiHandLandmarks) {
+                    // Disegna i connettori tra i punti della mano
                     drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 1 });
-                    drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: .5 });
+                    // Disegna i punti delle mani
+                    drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: 5 });
                 }
             }
-        }
+        });
 
         // 📌 Avvia la fotocamera
         startCamera();
