@@ -38,7 +38,7 @@
                 video: {
                     width: { ideal: 1280 },  // Risoluzione ridotta per migliorare la performance
                     height: { ideal: 720 },  // Risoluzione ridotta per migliorare la performance
-                    facingMode: { ideal: "environment" } // Preferisce la posteriore
+                    facingMode: { ideal: "environment" } // Preferisce la fotocamera posteriore
                 }
             };
 
@@ -67,7 +67,7 @@
 
         hands.setOptions({
             maxNumHands: 2,
-            modelComplexity: 0, // Ridotto a '0' per aumentare la velocità (più veloce, meno preciso)
+            modelComplexity: 1, // Ripristinato a 1 per maggiore precisione
             minDetectionConfidence: 0.5,
             minTrackingConfidence: 0.5
         });
