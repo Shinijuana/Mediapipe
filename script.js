@@ -2,38 +2,32 @@ const videoElement = document.getElementById('video');
 const canvasElement = document.getElementById('output');
 const canvasCtx = canvasElement.getContext('2d');
 
-// 📌 Imposta la fotocamera posteriore con fallback
+// 📌 Imposta la fotocamera posteriore su mobile
 async function startCamera() {
-    let constraints = {
+    const constraints = {
         video: {
+            facingMode: "environment", // Forza la fotocamera posteriore
             width: { ideal: window.innerWidth },
-            height: { ideal: window.innerHeight },
-            facingMode: { ideal: "environment" }, // Prova prima la camera posteriore
-            zoom: 1.0 // Evita zoom eccessivo su alcuni dispositivi
+            height: { ideal: window.innerHeight }
         }
     };
 
     try {
-        let stream = await navigator.mediaDevices.getUserMedia(constraints);
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         videoElement.srcObject = stream;
         videoElement.onloadedmetadata = () => {
             videoElement.play();
             adjustCanvasSize();
         };
     } catch (err) {
-        console.warn("Fotocamera posteriore non disponibile, uso quella frontale.", err);
-        constraints.video.facingMode = "user"; // Usa la fotocamera frontale come fallback
-        let stream = await navigator.mediaDevices.getUserMedia(constraints);
-        videoElement.srcObject = stream;
-        videoElement.play();
-        adjustCanvasSize();
+        console.error("Errore accesso webcam:", err);
     }
 }
 
-// 📌 Adatta il canvas alle dimensioni dello schermo
+// 📌 Adatta il canvas alla dimensione del video
 function adjustCanvasSize() {
-    canvasElement.width = videoElement.videoWidth || window.innerWidth;
-    canvasElement.height = videoElement.videoHeight || window.innerHeight;
+    canvasElement.width = videoElement.videoWidth;
+    canvasElement.height = videoElement.videoHeight;
 }
 
 // 📌 Configura MediaPipe Hands
@@ -48,27 +42,17 @@ hands.setOptions({
     minTrackingConfidence: 0.5
 });
 
-// 📌 Usa il video come input per MediaPipe
-const camera = new Camera(videoElement, {
-    onFrame: async () => {
-        await hands.send({ image: videoElement });
-    },
-    width: window.innerWidth,
-    height: window.innerHeight
-});
-camera.start();
-
-// 📌 Disegna le mani in modo allineato
+// 📌 Analizza i frame della webcam con MediaPipe
 hands.onResults((results) => {
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     
     if (results.multiHandLandmarks) {
         for (const landmarks of results.multiHandLandmarks) {
             drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 2 });
-            drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: 2 }); // 🔹 Punti più piccoli
+            drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: 2 }); // 🔹 Ridotti i punti
         }
     }
 });
 
-// 📌 Avvia la fotocamera
+// 📌 Avvia la webcam e MediaPipe
 startCamera();
