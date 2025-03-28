@@ -6,48 +6,23 @@ const canvasCtx = canvasElement.getContext('2d');
 async function startCamera() {
     let constraints = {
         video: {
-            width: { ideal: window.innerWidth },
-            height: { ideal: window.innerHeight },
-            facingMode: { exact: "environment" } // 🔹 Forza la fotocamera posteriore
+            width: { exact: window.innerWidth },
+            height: { exact: window.innerHeight },
+            facingMode: { exact: "environment" } // Preferisce la posteriore
         }
     };
 
     try {
         let stream = await navigator.mediaDevices.getUserMedia(constraints);
-        setVideoStream(stream);
+        videoElement.srcObject = stream;
+        videoElement.onloadedmetadata = () => {
+            videoElement.play();
+            adjustCanvasSize();
+        };
     } catch (err) {
-        console.warn("⚠️ Fotocamera posteriore non disponibile. Uso quella frontale.", err);
-
-        // 🔹 Se "exact" fallisce, prova con "ideal" (fallback alla posteriore)
-        constraints.video.facingMode = { ideal: "environment" };
-        try {
-            let stream = await navigator.mediaDevices.getUserMedia(constraints);
-            setVideoStream(stream);
-        } catch (err) {
-            console.error("❌ Errore critico, uso fotocamera frontale come ultima risorsa.", err);
-            constraints.video.facingMode = "user"; // 🔹 Fallback finale alla fotocamera frontale
-            let stream = await navigator.mediaDevices.getUserMedia(constraints);
-            setVideoStream(stream);
-        }
+        console.error("Errore accesso webcam:", err);
     }
 }
-
-// 📌 Imposta lo stream nel video e adatta il canvas
-function setVideoStream(stream) {
-    videoElement.srcObject = stream;
-    videoElement.onloadedmetadata = () => {
-        videoElement.play();
-        adjustCanvasSize();
-    };
-
-    // 🔹 Forza lo zoom a 1x per evitare problemi di ingrandimento automatico
-    const track = stream.getVideoTracks()[0];
-    const capabilities = track.getCapabilities();
-    if (capabilities.zoom) {
-        track.applyConstraints({ advanced: [{ zoom: 1.0 }] });
-    }
-}
-
 
 // 📌 Adatta il canvas alle dimensioni dello schermo
 function adjustCanvasSize() {
@@ -57,7 +32,7 @@ function adjustCanvasSize() {
 
 // 📌 Configura MediaPipe Hands
 const hands = new Hands({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+    locateFile: (file) => https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}
 });
 
 hands.setOptions({
@@ -83,8 +58,8 @@ hands.onResults((results) => {
     
     if (results.multiHandLandmarks) {
         for (const landmarks of results.multiHandLandmarks) {
-            drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 2 });
-            drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: .5 });
+            drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 1 });
+            drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: .5 }); 
         }
     }
 });
