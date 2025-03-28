@@ -8,7 +8,8 @@ async function startCamera() {
         video: {
             width: { ideal: window.innerWidth },
             height: { ideal: window.innerHeight },
-            facingMode: { ideal: "environment" } // Preferisce la posteriore
+            facingMode: { ideal: "environment" }, // Prova prima la camera posteriore
+            zoom: 1.0 // Evita zoom eccessivo su alcuni dispositivi
         }
     };
 
@@ -20,7 +21,12 @@ async function startCamera() {
             adjustCanvasSize();
         };
     } catch (err) {
-        console.error("Errore accesso webcam:", err);
+        console.warn("Fotocamera posteriore non disponibile, uso quella frontale.", err);
+        constraints.video.facingMode = "user"; // Usa la fotocamera frontale come fallback
+        let stream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoElement.srcObject = stream;
+        videoElement.play();
+        adjustCanvasSize();
     }
 }
 
@@ -59,7 +65,7 @@ hands.onResults((results) => {
     if (results.multiHandLandmarks) {
         for (const landmarks of results.multiHandLandmarks) {
             drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 2 });
-            drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: 5 });
+            drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: 2 }); // 🔹 Punti più piccoli
         }
     }
 });
