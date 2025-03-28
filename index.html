@@ -8,30 +8,24 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; background: #222; color: white; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: black; overflow: hidden; }
         video, canvas {
             position: absolute;
-            left: 50%;
-            top: 50px;
-            transform: translateX(-50%);
-        }
-        video {
-            display: block;
-            width: 100%;
-            max-width: 640px;
-            height: auto;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover; /* Adatta il video a tutto schermo */
         }
         canvas {
-            position: absolute;
-            pointer-events: none;
+            pointer-events: none; /* Evita interazioni con il canvas */
         }
     </style>
 </head>
 <body>
-    <h1>Hand Tracking con MediaPipe</h1>
     <video id="video" autoplay playsinline></video>
     <canvas id="output"></canvas>
     <script src="script.js"></script>
 </body>
-    
 </html>
