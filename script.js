@@ -32,7 +32,7 @@ function adjustCanvasSize() {
 
 // 📌 Configura MediaPipe Hands
 const hands = new Hands({
-    locateFile: (file) => https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@latest/${file}`
 });
 
 hands.setOptions({
