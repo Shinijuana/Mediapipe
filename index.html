@@ -16,7 +16,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            object-fit: contain; /* Cambiato da 'cover' a 'contain' */
+            object-fit: contain;
             transform: scaleX(-1); /* Inverte l'immagine per emulare una fotocamera frontale */
         }
         canvas {
@@ -32,12 +32,12 @@
         const canvasElement = document.getElementById('output');
         const canvasCtx = canvasElement.getContext('2d');
 
-        // 📌 Imposta la fotocamera posteriore con fallback
+        // 📌 Imposta la fotocamera posteriore con fallback e risoluzione inferiore per mobile
         async function startCamera() {
             let constraints = {
                 video: {
-                    width: { ideal: window.innerWidth },
-                    height: { ideal: window.innerHeight },
+                    width: { ideal: 1280 },  // Risoluzione ridotta per migliorare la performance
+                    height: { ideal: 720 },  // Risoluzione ridotta per migliorare la performance
                     facingMode: { ideal: "environment" } // Preferisce la posteriore
                 }
             };
@@ -67,7 +67,7 @@
 
         hands.setOptions({
             maxNumHands: 2,
-            modelComplexity: 1,
+            modelComplexity: 0, // Ridotto a '0' per aumentare la velocità (più veloce, meno preciso)
             minDetectionConfidence: 0.5,
             minTrackingConfidence: 0.5
         });
@@ -76,23 +76,26 @@
         const camera = new Camera(videoElement, {
             onFrame: async () => {
                 await hands.send({ image: videoElement });
+                requestAnimationFrame(() => {
+                    drawHandTracking();  // Rende il disegno più fluido
+                });
             },
-            width: window.innerWidth,
-            height: window.innerHeight
+            width: 1280,  // Risoluzione ridotta per migliorare la performance
+            height: 720,  // Risoluzione ridotta per migliorare la performance
         });
         camera.start();
 
         // 📌 Disegna le mani in modo allineato
-        hands.onResults((results) => {
+        function drawHandTracking() {
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             
-            if (results.multiHandLandmarks) {
-                for (const landmarks of results.multiHandLandmarks) {
+            if (hands.results && hands.results.multiHandLandmarks) {
+                for (const landmarks of hands.results.multiHandLandmarks) {
                     drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 1 });
-                    drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: .5 }); 
+                    drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: .5 });
                 }
             }
-        });
+        }
 
         // 📌 Avvia la fotocamera
         startCamera();
